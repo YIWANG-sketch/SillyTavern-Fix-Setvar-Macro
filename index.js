@@ -1,5 +1,5 @@
 import { saveSettingsDebounced } from "../../../../script.js";
-import { extension_settings } from "../../../extensions.js";
+import { extension_settings, getContext } from "../../../extensions.js";
 
 const MODULE_NAME = "fix-setvar-macro";
 const MACROS_TO_FIX = ["setvar", "setglobalvar", "addvar", "addglobalvar"];
@@ -28,7 +28,10 @@ function warnLog(...args) {
 }
 
 function escapePipesInMacro(text, macroName) {
-  const regex = new RegExp(`\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`, "gi");
+  const regex = new RegExp(
+    `\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`,
+    "gi",
+  );
 
   let matchCount = 0;
   let fixCount = 0;
@@ -135,12 +138,6 @@ function fixAllMessages(eventName = "UNKNOWN") {
   debugLog(`[Event: ${eventName}] ========== Starting message scan ==========`);
   const startTime = performance.now();
 
-  if (!SillyTavern || !SillyTavern.getContext) {
-    debugLog(`[Event: ${eventName}] SillyTavern context not ready yet`);
-    return;
-  }
-
-  const { getContext } = SillyTavern.getContext();
   const context = getContext();
   if (!context || !context.chat) {
     debugLog(`[Event: ${eventName}] No context or chat available`);
@@ -202,7 +199,9 @@ function fixAllMessages(eventName = "UNKNOWN") {
   const duration = (performance.now() - startTime).toFixed(2);
 
   if (fixedCount > 0) {
-    infoLog(`[Event: ${eventName}] Fixed ${fixedCount} message(s) in ${duration}ms`);
+    infoLog(
+      `[Event: ${eventName}] Fixed ${fixedCount} message(s) in ${duration}ms`,
+    );
     debugLog(
       `[Event: ${eventName}] Stats: ${processedMessages} messages, ${processedSwipes} swipes processed`,
     );
