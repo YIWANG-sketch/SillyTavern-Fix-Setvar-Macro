@@ -19,7 +19,7 @@
 此扩展会自动将宏中的 `|` 转义为 `\|`，使其不被识别为管道符：
 
 ```
-{{setvar::name:\|value\|}}
+{{setvar::name::\|value\|}}
 ```
 
 ## 支持的宏
@@ -28,24 +28,6 @@
 - `{{setglobalvar::...}}`
 - `{{addvar::...}}`
 - `{{addglobalvar::...}}`
-
-## 安装方法
-
-### 方法 1：通过 URL 安装（推荐）
-
-1. 打开 SillyTavern
-2. 进入 **Extensions** → **Install Extension**
-3. 粘贴以下 URL：
-   ```
-   https://github.com/YIWANG-sketch/SillyTavern-Fix-Setvar-Macro
-   ```
-4. 点击 **Install**
-
-### 方法 2：手动安装
-
-1. 下载此仓库的所有文件
-2. 将文件放入 `SillyTavern/data/<user>/extensions/fix-setvar-macro/` 目录
-3. 重启 SillyTavern
 
 ## 使用方法
 
@@ -58,20 +40,6 @@
    - 编辑消息时
    - 切换聊天时
 
-## 调试功能
-
-扩展提供了详细的调试日志系统：
-
-1. 在设置面板中勾选 **启用详细日志**
-2. 打开浏览器控制台（F12）
-3. 在控制台筛选框输入 `FSM:DEBUG` 查看详细日志
-
-### 日志级别
-
-- `✓ FSM:INFO` - 重要信息（始终显示）
-- `🔍 FSM:DEBUG` - 详细调试信息（仅调试模式）
-- `⚠ FSM:WARN` - 警告信息
-
 ## 工作原理
 
 1. 监听多个事件（`GENERATION_STARTED`、`MESSAGE_RECEIVED`、`MESSAGE_EDITED`、`CHAT_CHANGED`）
@@ -80,6 +48,15 @@
 4. 将未转义的 `|` 替换为 `\|`
 5. 更新消息内容
 
+## 文件结构
+
+```
+fix-setvar-macro/
+├── index.js          # 主逻辑
+├── settings.html     # 设置界面
+└── README.md         # 说明文档
+```
+
 ## 技术细节
 
 - 使用 `eventSource.makeFirst()` 确保在宏处理前执行
@@ -87,12 +64,19 @@
 - 设置会自动保存到 `context.extensionSettings`
 - 支持实时开关，无需重启
 
+## 调试
+
+打开浏览器控制台，查看以下日志：
+
+```
+[fix-setvar-macro] Extension loaded
+[fix-setvar-macro] Ready to fix setvar macros
+[fix-setvar-macro] Fixed pipes in N messages  // 当有消息被修复时
+[fix-setvar-macro] Extension enabled/disabled  // 切换开关时
+```
+
 ## 兼容性
 
 - 适用于 SillyTavern staging 分支
 - 不影响其他宏和过滤器的正常使用
 - 可以随时通过设置面板禁用
-
-## 许可证
-
-MIT License

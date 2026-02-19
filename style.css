@@ -1,0 +1,102 @@
+.fix-setvar-settings {
+  padding: 10px;
+}
+
+.fix-setvar-content {
+  padding: 15px;
+}
+
+.fix-setvar-description {
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: var(--SmartThemeBlurTintColor);
+  border-radius: 5px;
+}
+
+.fix-setvar-description p {
+  margin: 5px 0;
+}
+
+.fix-setvar-description code {
+  background-color: var(--black30a);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.fix-setvar-option {
+  margin-bottom: 15px;
+}
+
+.fix-setvar-hint {
+  margin-left: 25px;
+  margin-top: 5px;
+  font-size: 0.9em;
+  color: var(--SmartThemeBodyColor);
+  opacity: 0.8;
+}
+
+.fix-setvar-hint code {
+  background-color: var(--black30a);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.fix-setvar-info {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--SmartThemeBlurTintColor);
+  border-radius: 5px;
+}
+
+.fix-setvar-info h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.fix-setvar-info ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.fix-setvar-info li {
+  margin: 5px 0;
+}
+
+.fix-setvar-info code {
+  background-color: var(--black30a);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-family: monospace;
+}
+
+.fix-setvar-example {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: var(--SmartThemeBlurTintColor);
+  border-radius: 5px;
+}
+
+.fix-setvar-example h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.fix-setvar-code {
+  font-family: monospace;
+}
+
+.fix-setvar-before,
+.fix-setvar-after {
+  margin: 10px 0;
+  padding: 8px;
+  background-color: var(--black30a);
+  border-radius: 3px;
+}
+
+.fix-setvar-before code,
+.fix-setvar-after code {
+  background-color: transparent;
+  padding: 0;
+}

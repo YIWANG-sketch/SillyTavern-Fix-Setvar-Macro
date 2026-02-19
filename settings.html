@@ -1,0 +1,61 @@
+<div class="fix-setvar-settings">
+    <div class="inline-drawer">
+        <div class="inline-drawer-toggle inline-drawer-header">
+            <b>Fix Setvar Macro</b>
+            <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
+        </div>
+        <div class="inline-drawer-content">
+            <div class="fix-setvar-content">
+                <div class="fix-setvar-description">
+                    <p>自动修复 SillyTavern staging 分支中 <code>setvar</code> 系列宏的管道符 <code>|</code> 解析问题。</p>
+                    <p>支持的宏：<code>setvar</code>, <code>setglobalvar</code>, <code>addvar</code>, <code>addglobalvar</code></p>
+                </div>
+
+                <div class="fix-setvar-option">
+                    <label class="checkbox_label" for="fix_setvar_enabled">
+                        <input type="checkbox" id="fix_setvar_enabled" name="fix_setvar_enabled" />
+                        <span>启用自动修复</span>
+                    </label>
+                    <div class="fix-setvar-hint">
+                        启用后，扩展会在生成、接收、编辑消息时自动转义宏中的管道符 <code>|</code> 为 <code>\|</code>
+                    </div>
+                </div>
+
+                <div class="fix-setvar-option">
+                    <label class="checkbox_label" for="fix_setvar_debug">
+                        <input type="checkbox" id="fix_setvar_debug" name="fix_setvar_debug" />
+                        <span>启用调试日志</span>
+                    </label>
+                    <div class="fix-setvar-hint">
+                        启用后，会在浏览器控制台输出详细的调试信息（过滤关键词：<code>FSM:DEBUG</code>）
+                    </div>
+                </div>
+
+                <div class="fix-setvar-info">
+                    <h4>工作原理</h4>
+                    <ul>
+                        <li>监听多个事件（生成开始、消息接收、消息编辑、聊天切换）</li>
+                        <li>遍历所有聊天消息（包括 swipes）</li>
+                        <li>使用正则表达式查找目标宏</li>
+                        <li>将未转义的 <code>|</code> 替换为 <code>\|</code></li>
+                        <li>更新消息内容</li>
+                    </ul>
+                </div>
+
+                <div class="fix-setvar-example">
+                    <h4>示例</h4>
+                    <div class="fix-setvar-code">
+                        <div class="fix-setvar-before">
+                            <strong>修复前：</strong>
+                            <code>{{setvar::name::|value|}}</code>
+                        </div>
+                        <div class="fix-setvar-after">
+                            <strong>修复后：</strong>
+                            <code>{{setvar::name::\|value\|}}</code>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
