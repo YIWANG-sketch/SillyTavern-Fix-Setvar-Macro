@@ -1,19 +1,17 @@
-import { saveSettingsDebounced } from '../../../../script.js';
-import { extension_settings } from '../../../extensions.js';
+import { saveSettingsDebounced } from "../../../../script.js";
+import { extension_settings } from "../../../extensions.js";
 
-const { eventSource, event_types, getContext, renderExtensionTemplateAsync } = SillyTavern.getContext();
-
-const MODULE_NAME = 'fix-setvar-macro';
-const MACROS_TO_FIX = ['setvar', 'setglobalvar', 'addvar', 'addglobalvar'];
+const MODULE_NAME = "fix-setvar-macro";
+const MACROS_TO_FIX = ["setvar", "setglobalvar", "addvar", "addglobalvar"];
 
 let extensionSettings = {
   enabled: true,
   debug: false,
 };
 
-const DEBUG_PREFIX = '🔍 FSM:DEBUG';
-const INFO_PREFIX = '✓ FSM:INFO';
-const WARN_PREFIX = '⚠ FSM:WARN';
+const DEBUG_PREFIX = "🔍 FSM:DEBUG";
+const INFO_PREFIX = "✓ FSM:INFO";
+const WARN_PREFIX = "⚠ FSM:WARN";
 
 function debugLog(...args) {
   if (extensionSettings.debug) {
@@ -30,7 +28,7 @@ function warnLog(...args) {
 }
 
 function escapePipesInMacro(text, macroName) {
-  const regex = new RegExp(`\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`, 'gi');
+  const regex = new RegExp(`\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`, "gi");
 
   let matchCount = 0;
   let fixCount = 0;
@@ -44,11 +42,11 @@ function escapePipesInMacro(text, macroName) {
     let i = 0;
 
     while (i < args.length) {
-      if (args[i] === '|') {
+      if (args[i] === "|") {
         // Count preceding backslashes
         let backslashCount = 0;
         let j = i - 1;
-        while (j >= 0 && args[j] === '\\') {
+        while (j >= 0 && args[j] === "\\") {
           backslashCount++;
           j--;
         }
@@ -58,7 +56,9 @@ function escapePipesInMacro(text, macroName) {
           unescapedPipes++;
           // Escape this pipe
           escapedArgs =
-            escapedArgs.slice(0, i + (unescapedPipes - 1)) + '\\' + escapedArgs.slice(i + (unescapedPipes - 1));
+            escapedArgs.slice(0, i + (unescapedPipes - 1)) +
+            "\\" +
+            escapedArgs.slice(i + (unescapedPipes - 1));
           i++; // Skip the backslash we just added
         }
       }
@@ -81,15 +81,17 @@ function escapePipesInMacro(text, macroName) {
   });
 
   if (matchCount > 0) {
-    debugLog(`[Regex Match] Macro: ${macroName}, Total matches: ${matchCount}, Fixed: ${fixCount}`);
+    debugLog(
+      `[Regex Match] Macro: ${macroName}, Total matches: ${matchCount}, Fixed: ${fixCount}`,
+    );
   }
 
   return result;
 }
 
 function fixMacrosInText(text) {
-  if (!text || typeof text !== 'string') {
-    debugLog('[Text Check] Invalid input:', typeof text);
+  if (!text || typeof text !== "string") {
+    debugLog("[Text Check] Invalid input:", typeof text);
     return text;
   }
 
@@ -97,7 +99,7 @@ function fixMacrosInText(text) {
   let result = text;
   let totalChanges = 0;
 
-  debugLog('[Text Processing] Starting, length:', text.length);
+  debugLog("[Text Processing] Starting, length:", text.length);
 
   for (const macroName of MACROS_TO_FIX) {
     const before = result;
@@ -111,9 +113,11 @@ function fixMacrosInText(text) {
   const duration = (performance.now() - startTime).toFixed(2);
 
   if (totalChanges > 0) {
-    debugLog(`[Text Processing] Complete in ${duration}ms, ${totalChanges} macro type(s) fixed`);
     debugLog(
-      `[Text Diff] Length: ${text.length} → ${result.length} (${result.length - text.length >= 0 ? '+' : ''}${result.length - text.length})`,
+      `[Text Processing] Complete in ${duration}ms, ${totalChanges} macro type(s) fixed`,
+    );
+    debugLog(
+      `[Text Diff] Length: ${text.length} → ${result.length} (${result.length - text.length >= 0 ? "+" : ""}${result.length - text.length})`,
     );
   } else {
     debugLog(`[Text Processing] Complete in ${duration}ms, no changes needed`);
@@ -122,7 +126,7 @@ function fixMacrosInText(text) {
   return result;
 }
 
-function fixAllMessages(eventName = 'UNKNOWN') {
+function fixAllMessages(eventName = "UNKNOWN") {
   if (!extensionSettings.enabled) {
     debugLog(`[Event: ${eventName}] Extension disabled, skipping`);
     return;
@@ -131,6 +135,7 @@ function fixAllMessages(eventName = 'UNKNOWN') {
   debugLog(`[Event: ${eventName}] ========== Starting message scan ==========`);
   const startTime = performance.now();
 
+  const { getContext } = SillyTavern.getContext();
   const context = getContext();
   if (!context || !context.chat) {
     debugLog(`[Event: ${eventName}] No context or chat available`);
@@ -154,7 +159,9 @@ function fixAllMessages(eventName = 'UNKNOWN') {
     const message = chat[i];
     processedMessages++;
 
-    debugLog(`[Message ${i}] Processing message, Role: ${message.is_user ? 'user' : 'assistant'}`);
+    debugLog(
+      `[Message ${i}] Processing message, Role: ${message.is_user ? "user" : "assistant"}`,
+    );
 
     if (message.mes) {
       const original = message.mes;
@@ -191,7 +198,9 @@ function fixAllMessages(eventName = 'UNKNOWN') {
 
   if (fixedCount > 0) {
     infoLog(`[Event: ${eventName}] Fixed ${fixedCount} message(s) in ${duration}ms`);
-    debugLog(`[Event: ${eventName}] Stats: ${processedMessages} messages, ${processedSwipes} swipes processed`);
+    debugLog(
+      `[Event: ${eventName}] Stats: ${processedMessages} messages, ${processedSwipes} swipes processed`,
+    );
   } else {
     debugLog(
       `[Event: ${eventName}] No fixes needed. Processed ${processedMessages} messages, ${processedSwipes} swipes in ${duration}ms`,
@@ -208,24 +217,24 @@ function loadSettings() {
 
   Object.assign(extensionSettings, extension_settings[MODULE_NAME]);
 
-  $('#fix_setvar_enabled').prop('checked', extensionSettings.enabled);
-  $('#fix_setvar_debug').prop('checked', extensionSettings.debug);
+  $("#fix_setvar_enabled").prop("checked", extensionSettings.enabled);
+  $("#fix_setvar_debug").prop("checked", extensionSettings.debug);
 
-  debugLog('[Settings] Loaded:', extensionSettings);
+  debugLog("[Settings] Loaded:", extensionSettings);
 }
 
 function onEnabledChanged() {
-  extensionSettings.enabled = $('#fix_setvar_enabled').prop('checked');
+  extensionSettings.enabled = $("#fix_setvar_enabled").prop("checked");
   extension_settings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
-  infoLog(`Extension ${extensionSettings.enabled ? 'enabled' : 'disabled'}`);
+  infoLog(`Extension ${extensionSettings.enabled ? "enabled" : "disabled"}`);
 }
 
 function onDebugChanged() {
-  extensionSettings.debug = $('#fix_setvar_debug').prop('checked');
+  extensionSettings.debug = $("#fix_setvar_debug").prop("checked");
   extension_settings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
-  infoLog(`Debug mode ${extensionSettings.debug ? 'enabled' : 'disabled'}`);
+  infoLog(`Debug mode ${extensionSettings.debug ? "enabled" : "disabled"}`);
 
   if (extensionSettings.debug) {
     console.log(`${DEBUG_PREFIX} ========================================`);
@@ -238,42 +247,47 @@ function onDebugChanged() {
 }
 
 jQuery(async () => {
-  infoLog('Extension loading...');
+  infoLog("Extension loading...");
 
-  const settingsHtml = await renderExtensionTemplateAsync('third-party/SillyTavern-Fix-Setvar-Macro', 'settings');
-  $('#extensions_settings2').append(settingsHtml);
+  const { eventSource, event_types, renderExtensionTemplateAsync } = SillyTavern.getContext();
+
+  const settingsHtml = await renderExtensionTemplateAsync(
+    "third-party/SillyTavern-Fix-Setvar-Macro",
+    "settings",
+  );
+  $("#extensions_settings2").append(settingsHtml);
 
   loadSettings();
 
-  $('#fix_setvar_enabled').on('change', onEnabledChanged);
-  $('#fix_setvar_debug').on('change', onDebugChanged);
+  $("#fix_setvar_enabled").on("change", onEnabledChanged);
+  $("#fix_setvar_debug").on("change", onDebugChanged);
 
-  debugLog('[Init] Registering event listeners...');
+  debugLog("[Init] Registering event listeners...");
 
   eventSource.makeFirst(event_types.GENERATION_STARTED, () => {
-    debugLog('[Event Trigger] GENERATION_STARTED');
-    fixAllMessages('GENERATION_STARTED');
+    debugLog("[Event Trigger] GENERATION_STARTED");
+    fixAllMessages("GENERATION_STARTED");
   });
 
   eventSource.on(event_types.MESSAGE_RECEIVED, () => {
-    debugLog('[Event Trigger] MESSAGE_RECEIVED');
-    fixAllMessages('MESSAGE_RECEIVED');
+    debugLog("[Event Trigger] MESSAGE_RECEIVED");
+    fixAllMessages("MESSAGE_RECEIVED");
   });
 
   eventSource.on(event_types.MESSAGE_EDITED, () => {
-    debugLog('[Event Trigger] MESSAGE_EDITED');
-    fixAllMessages('MESSAGE_EDITED');
+    debugLog("[Event Trigger] MESSAGE_EDITED");
+    fixAllMessages("MESSAGE_EDITED");
   });
 
   eventSource.on(event_types.CHAT_CHANGED, () => {
-    debugLog('[Event Trigger] CHAT_CHANGED');
-    fixAllMessages('CHAT_CHANGED');
+    debugLog("[Event Trigger] CHAT_CHANGED");
+    fixAllMessages("CHAT_CHANGED");
   });
 
-  debugLog('[Init] Running initial scan...');
-  fixAllMessages('INIT');
+  debugLog("[Init] Running initial scan...");
+  fixAllMessages("INIT");
 
-  infoLog('Extension ready! Monitoring for setvar macros...');
+  infoLog("Extension ready! Monitoring for setvar macros...");
 
   if (extensionSettings.debug) {
     console.log(`${DEBUG_PREFIX} ========================================`);
