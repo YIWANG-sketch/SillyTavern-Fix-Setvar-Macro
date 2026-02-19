@@ -202,19 +202,11 @@ function fixAllMessages(eventName = 'UNKNOWN') {
 }
 
 function loadSettings() {
-  const context = getContext();
-  if (!context) {
-    warnLog('[Settings] No context available');
-    return;
+  if (!extension_settings[MODULE_NAME]) {
+    extension_settings[MODULE_NAME] = {};
   }
 
-  if (!context.extensionSettings) {
-    context.extensionSettings = {};
-  }
-
-  if (context.extensionSettings[MODULE_NAME]) {
-    Object.assign(extensionSettings, context.extensionSettings[MODULE_NAME]);
-  }
+  Object.assign(extensionSettings, extension_settings[MODULE_NAME]);
 
   $('#fix_setvar_enabled').prop('checked', extensionSettings.enabled);
   $('#fix_setvar_debug').prop('checked', extensionSettings.debug);
@@ -224,34 +216,14 @@ function loadSettings() {
 
 function onEnabledChanged() {
   extensionSettings.enabled = $('#fix_setvar_enabled').prop('checked');
-  const context = getContext();
-  if (!context) {
-    warnLog('[Settings] No context available');
-    return;
-  }
-
-  if (!context.extensionSettings) {
-    context.extensionSettings = {};
-  }
-
-  context.extensionSettings[MODULE_NAME] = extensionSettings;
+  extension_settings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
   infoLog(`Extension ${extensionSettings.enabled ? 'enabled' : 'disabled'}`);
 }
 
 function onDebugChanged() {
   extensionSettings.debug = $('#fix_setvar_debug').prop('checked');
-  const context = getContext();
-  if (!context) {
-    warnLog('[Settings] No context available');
-    return;
-  }
-
-  if (!context.extensionSettings) {
-    context.extensionSettings = {};
-  }
-
-  context.extensionSettings[MODULE_NAME] = extensionSettings;
+  extension_settings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
   infoLog(`Debug mode ${extensionSettings.debug ? 'enabled' : 'disabled'}`);
 
@@ -268,7 +240,7 @@ function onDebugChanged() {
 jQuery(async () => {
   infoLog('Extension loading...');
 
-  const settingsHtml = await renderExtensionTemplateAsync(MODULE_NAME, 'settings');
+  const settingsHtml = await renderExtensionTemplateAsync('third-party/SillyTavern-Fix-Setvar-Macro', 'settings');
   $('#extensions_settings2').append(settingsHtml);
 
   loadSettings();
