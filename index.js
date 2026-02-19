@@ -40,80 +40,44 @@ function warnLog(...args) {
  * PreProcessor: 在 setvar 系列宏中，将 | 替换为占位符
  */
 function setvarPreProcessor(text, env) {
-  if (!extensionSettings.enabled) {
-    return text;
-  }
+  if (!extensionSettings.enabled) return text;
+  if (!text.includes("{{")) return text;
 
   const startTime = performance.now();
   let result = text;
   let totalFixed = 0;
 
   for (const macroName of SET_MACROS) {
+    if (!result.includes(`{{${macroName}::`)) continue;
+
     const regex = new RegExp(
       `\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`,
       "gi",
     );
 
     result = result.replace(regex, (match, args, offset) => {
-      // 检查是否包含未转义的 |
-      let hasPipes = false;
-      let i = 0;
-      while (i < args.length) {
-        if (args[i] === "|") {
-          let backslashCount = 0;
-          let j = i - 1;
-          while (j >= 0 && args[j] === "\\") {
-            backslashCount++;
-            j--;
-          }
-          if (backslashCount % 2 === 0) {
-            hasPipes = true;
-            break;
-          }
-        }
-        i++;
-      }
+      if (!args.includes("|")) return match;
 
-      if (hasPipes) {
-        // 替换所有未转义的 | 为占位符
-        let processedArgs = "";
-        let i = 0;
-        while (i < args.length) {
-          if (args[i] === "|") {
-            let backslashCount = 0;
-            let j = i - 1;
-            while (j >= 0 && args[j] === "\\") {
-              backslashCount++;
-              j--;
-            }
-            if (backslashCount % 2 === 0) {
-              processedArgs += PIPE_PLACEHOLDER;
-            } else {
-              processedArgs += args[i];
-            }
-          } else {
-            processedArgs += args[i];
-          }
-          i++;
-        }
+      // 检查是否有未转义的 |
+      const hasUnescapedPipe = /(?<!\\)\|/.test(args);
+      if (!hasUnescapedPipe) return match;
 
-        totalFixed++;
-        const fixed = `{{${macroName}::${processedArgs}}}`;
+      // 替换未转义的 | 为占位符
+      const processedArgs = args.replace(/(?<!\\)\|/g, PIPE_PLACEHOLDER);
+      totalFixed++;
 
+      if (extensionSettings.debug) {
         debugLog(`[PreProcessor] Fixed ${macroName} at position ${offset}`);
         debugLog(`  Original: ${match}`);
-        debugLog(`  Fixed:    ${fixed}`);
-
-        return fixed;
+        debugLog(`  Fixed:    {{${macroName}::${processedArgs}}}`);
       }
 
-      return match;
+      return `{{${macroName}::${processedArgs}}}`;
     });
   }
 
-  const duration = (performance.now() - startTime).toFixed(2);
-
-  if (totalFixed > 0) {
+  if (totalFixed > 0 && extensionSettings.debug) {
+    const duration = (performance.now() - startTime).toFixed(2);
     debugLog(`[PreProcessor] Fixed ${totalFixed} macro(s) in ${duration}ms`);
   }
 

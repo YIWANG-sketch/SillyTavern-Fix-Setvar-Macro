@@ -2,65 +2,55 @@
   <div class="inline-drawer">
     <div class="inline-drawer-toggle inline-drawer-header">
       <b>Fix Setvar Macro</b>
-      <div
-        class="inline-drawer-icon fa-solid fa-circle-chevron-down down"
-      ></div>
+      <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
     </div>
     <div class="inline-drawer-content">
       <div class="flex-container flexFlowColumn">
-        <label class="checkbox_label" for="fix_setvar_enabled">
+        <label class="checkbox_label fsm-main-toggle" for="fix_setvar_enabled">
           <input id="fix_setvar_enabled" type="checkbox" class="checkbox" />
           <span>启用自动修复</span>
-          <i
-            class="fa-solid fa-info-circle"
-            title="自动转义 setvar 宏中的管道符 | 字符，防止被误识别为过滤器分隔符"
-          ></i>
+          <i class="fa-solid fa-info-circle" title="使用占位符替换方案修复 setvar 宏中的管道符 | 字符"></i>
         </label>
 
-        <div class="fix-setvar-macro-debug-section">
-          <div class="debug-header">
+        <div class="fsm-info-card">
+          <div class="fsm-info-header">
+            <i class="fa-solid fa-lightbulb"></i>
+            <span>工作原理</span>
+          </div>
+          <div class="fsm-info-content">
+            <p><strong>PreProcessor：</strong>将 <code>|</code> 替换为占位符</p>
+            <p><strong>PostProcessor：</strong>将占位符还原为 <code>|</code></p>
+            <p class="fsm-info-note">用户无需手动转义，扩展自动处理</p>
+          </div>
+        </div>
+
+        <div class="fsm-debug-section">
+          <div class="fsm-section-header">
             <i class="fa-solid fa-bug"></i>
             <span>调试模式</span>
           </div>
           <label class="checkbox_label" for="fix_setvar_debug">
             <input id="fix_setvar_debug" type="checkbox" class="checkbox" />
             <span>启用详细日志</span>
-            <i
-              class="fa-solid fa-info-circle"
-              title="在控制台输出详细的调试信息，包括每次修复的具体内容、正则匹配结果、事件触发时机等"
-            ></i>
+            <i class="fa-solid fa-info-circle" title="在控制台输出详细的处理日志"></i>
           </label>
-          <div class="debug-info">
-            <small><b>调试信息包括：</b></small>
-            <ul style="margin: 5px 0; padding-left: 20px">
-              <li>事件触发时机和来源</li>
-              <li>每条消息的处理详情</li>
-              <li>正则表达式匹配结果</li>
-              <li>修复前后的文本对比</li>
-              <li>性能统计（处理时间）</li>
-            </ul>
-            <small><b>控制台筛选：</b></small>
-            <div class="debug-filter-hint">🔍 FSM:DEBUG</div>
+          <div class="fsm-debug-hint">
+            <small>控制台筛选：</small>
+            <code class="fsm-filter-code">FSM:DEBUG</code>
           </div>
         </div>
 
-        <div class="margin-top-10px">
-          <small><b>说明：</b></small>
-          <small
-            >此扩展会自动将 <code>\{{setvar::name::|value|}}</code> 转换为
-            <code>\{{setvar::name::\|value\|}}</code>，解决 SillyTavern staging
-            分支中管道符被错误解析的问题。</small
-          >
-        </div>
-
-        <div class="margin-top-10px">
-          <small><b>支持的宏：</b></small>
-          <ul style="margin: 5px 0; padding-left: 20px">
-            <li><code>\{{setvar::...}}</code></li>
-            <li><code>\{{setglobalvar::...}}</code></li>
-            <li><code>\{{addvar::...}}</code></li>
-            <li><code>\{{addglobalvar::...}}</code></li>
-          </ul>
+        <div class="fsm-macros-list">
+          <div class="fsm-section-header">
+            <i class="fa-solid fa-list-check"></i>
+            <span>支持的宏</span>
+          </div>
+          <div class="fsm-macro-items">
+            <code>{{setvar::...}}</code>
+            <code>{{setglobalvar::...}}</code>
+            <code>{{addvar::...}}</code>
+            <code>{{addglobalvar::...}}</code>
+          </div>
         </div>
       </div>
     </div>
