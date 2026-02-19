@@ -1,17 +1,22 @@
-import { saveSettingsDebounced } from '../../../../script.js';
-import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js';
+import { saveSettingsDebounced } from "../../../../script.js";
+import {
+  extension_settings,
+  getContext,
+  renderExtensionTemplateAsync,
+} from "../../../extensions.js";
+import { MacroEngine } from "../../../macros/engine/MacroEngine.js";
 
-const MODULE_NAME = 'third-party/SillyTavern-Fix-Setvar-Macro';
-const MACROS_TO_FIX = ['setvar', 'setglobalvar', 'addvar', 'addglobalvar'];
+const MODULE_NAME = "third-party/SillyTavern-Fix-Setvar-Macro";
+const MACROS_TO_FIX = ["setvar", "setglobalvar", "addvar", "addglobalvar"];
 
 let extensionSettings = {
   enabled: true,
   debug: false,
 };
 
-const DEBUG_PREFIX = '🔍 FSM:DEBUG';
-const INFO_PREFIX = '✓ FSM:INFO';
-const WARN_PREFIX = '⚠ FSM:WARN';
+const DEBUG_PREFIX = "🔍 FSM:DEBUG";
+const INFO_PREFIX = "✓ FSM:INFO";
+const WARN_PREFIX = "⚠ FSM:WARN";
 
 function debugLog(...args) {
   if (extensionSettings.debug) {
@@ -37,18 +42,21 @@ function escapePipesPreProcessor(text, env) {
   let totalFixed = 0;
 
   for (const macroName of MACROS_TO_FIX) {
-    const regex = new RegExp(`\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`, 'gi');
-    
+    const regex = new RegExp(
+      `\\{\\{${macroName}::((?:[^}]|\\}(?!\\}))*)\\}\\}`,
+      "gi",
+    );
+
     result = result.replace(regex, (match, args, offset) => {
       let unescapedPipes = 0;
       let escapedArgs = args;
       let i = 0;
 
       while (i < args.length) {
-        if (args[i] === '|') {
+        if (args[i] === "|") {
           let backslashCount = 0;
           let j = i - 1;
-          while (j >= 0 && args[j] === '\\') {
+          while (j >= 0 && args[j] === "\\") {
             backslashCount++;
             j--;
           }
@@ -56,7 +64,9 @@ function escapePipesPreProcessor(text, env) {
           if (backslashCount % 2 === 0) {
             unescapedPipes++;
             escapedArgs =
-              escapedArgs.slice(0, i + (unescapedPipes - 1)) + '\\' + escapedArgs.slice(i + (unescapedPipes - 1));
+              escapedArgs.slice(0, i + (unescapedPipes - 1)) +
+              "\\" +
+              escapedArgs.slice(i + (unescapedPipes - 1));
             i++;
           }
         }
@@ -96,8 +106,6 @@ function registerPreProcessor() {
     return;
   }
 
-  const { MacroEngine } = SillyTavern.getContext();
-  
   if (!MacroEngine) {
     warnLog('[PreProcessor] MacroEngine not available, cannot register');
     return;
@@ -118,8 +126,6 @@ function unregisterPreProcessor() {
     return;
   }
 
-  const { MacroEngine } = SillyTavern.getContext();
-  
   if (!MacroEngine) {
     warnLog('[PreProcessor] MacroEngine not available, cannot unregister');
     return;
@@ -139,7 +145,7 @@ function unregisterPreProcessor() {
 function loadSettings() {
   const context = getContext();
   if (!context) {
-    warnLog('[Settings] No context available');
+    warnLog("[Settings] No context available");
     return;
   }
 
@@ -151,17 +157,17 @@ function loadSettings() {
     Object.assign(extensionSettings, context.extensionSettings[MODULE_NAME]);
   }
 
-  $('#fix_setvar_enabled').prop('checked', extensionSettings.enabled);
-  $('#fix_setvar_debug').prop('checked', extensionSettings.debug);
+  $("#fix_setvar_enabled").prop("checked", extensionSettings.enabled);
+  $("#fix_setvar_debug").prop("checked", extensionSettings.debug);
 
-  debugLog('[Settings] Loaded:', extensionSettings);
+  debugLog("[Settings] Loaded:", extensionSettings);
 }
 
 function onEnabledChanged() {
-  extensionSettings.enabled = $('#fix_setvar_enabled').prop('checked');
+  extensionSettings.enabled = $("#fix_setvar_enabled").prop("checked");
   const context = getContext();
   if (!context) {
-    warnLog('[Settings] No context available');
+    warnLog("[Settings] No context available");
     return;
   }
 
@@ -174,18 +180,18 @@ function onEnabledChanged() {
 
   if (extensionSettings.enabled) {
     registerPreProcessor();
-    infoLog('Extension enabled');
+    infoLog("Extension enabled");
   } else {
     unregisterPreProcessor();
-    infoLog('Extension disabled');
+    infoLog("Extension disabled");
   }
 }
 
 function onDebugChanged() {
-  extensionSettings.debug = $('#fix_setvar_debug').prop('checked');
+  extensionSettings.debug = $("#fix_setvar_debug").prop("checked");
   const context = getContext();
   if (!context) {
-    warnLog('[Settings] No context available');
+    warnLog("[Settings] No context available");
     return;
   }
 
@@ -195,7 +201,7 @@ function onDebugChanged() {
 
   context.extensionSettings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
-  infoLog(`Debug mode ${extensionSettings.debug ? 'enabled' : 'disabled'}`);
+  infoLog(`Debug mode ${extensionSettings.debug ? "enabled" : "disabled"}`);
 
   if (extensionSettings.debug) {
     console.log(`${DEBUG_PREFIX} ========================================`);
@@ -208,21 +214,24 @@ function onDebugChanged() {
 }
 
 jQuery(async () => {
-  infoLog('Extension loading...');
+  infoLog("Extension loading...");
 
-  const settingsHtml = await renderExtensionTemplateAsync(MODULE_NAME, 'settings');
-  $('#extensions_settings2').append(settingsHtml);
+  const settingsHtml = await renderExtensionTemplateAsync(
+    MODULE_NAME,
+    "settings",
+  );
+  $("#extensions_settings2").append(settingsHtml);
 
   loadSettings();
 
-  $('#fix_setvar_enabled').on('change', onEnabledChanged);
-  $('#fix_setvar_debug').on('change', onDebugChanged);
+  $("#fix_setvar_enabled").on("change", onEnabledChanged);
+  $("#fix_setvar_debug").on("change", onDebugChanged);
 
   if (extensionSettings.enabled) {
     registerPreProcessor();
   }
 
-  infoLog('Extension ready! Using MacroEngine PreProcessor hook.');
+  infoLog("Extension ready! Using MacroEngine PreProcessor hook.");
 
   if (extensionSettings.debug) {
     console.log(`${DEBUG_PREFIX} ========================================`);
