@@ -10,7 +10,6 @@ const MODULE_NAME = "third-party/SillyTavern-Fix-Setvar-Macro";
 const SET_MACROS = ["setvar", "setglobalvar", "addvar", "addglobalvar"];
 const GET_MACROS = ["getvar", "getglobalvar"];
 
-// 使用不太可能与用户内容冲突的占位符
 const PIPE_PLACEHOLDER = "\u{E000}PIPE\u{E001}"; // Unicode 私有使用区
 
 let extensionSettings = {
