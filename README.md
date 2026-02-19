@@ -12,15 +12,22 @@
 {{setvar::name::|value|}}
 ```
 
-`|` 会被错误解析为管道符分隔符，而不是值的一部分。
+`|` 会被错误解析为管道符分隔符，而不是值的一部分。即使手动转义 `\|` 也无法解决问题。
 
 ### 解决方案
 
-此扩展使用 **MacroEngine PreProcessor Hook** 在宏解析前自动转义管道符：
+此扩展使用 **占位符替换** 方案：
 
-```
-{{setvar::name::\|value\|}}
-```
+1. **PreProcessor（setvar 阶段）**：将 `|` 替换为 Unicode 私有区占位符
+
+   ```
+   {{setvar::name::|value|}}  →  {{setvar::name::〈PIPE〉value〈PIPE〉}}
+   ```
+
+2. **PostProcessor（getvar 阶段）**：将占位符还原为 `|`
+   ```
+   {{getvar::name}}  →  读取 "〈PIPE〉value〈PIPE〉"  →  输出 "|value|"
+   ```
 
 ## 支持的宏
 
@@ -38,22 +45,29 @@
 
 ## 工作原理
 
-扩展使用 SillyTavern 官方的 **MacroEngine PreProcessor API**：
+扩展使用 SillyTavern 官方的 **MacroEngine Processor API**：
 
-1. 在扩展加载时，通过 `MacroEngine.addPreProcessor()` 注册预处理器
-2. 预处理器在宏解析前运行（priority=0，最高优先级）
-3. 使用正则表达式查找目标宏
-4. 智能检测未转义的 `|` 字符（通过计算前置反斜杠数量）
-5. 将未转义的 `|` 替换为 `\|`
-6. 返回修复后的文本给宏引擎
+### PreProcessor（优先级 0）
+
+- 在宏解析前运行
+- 扫描所有 `setvar`、`setglobalvar`、`addvar`、`addglobalvar` 宏
+- 将参数中的 `|` 替换为 Unicode 私有区占位符（`\u{E000}PIPE\u{E001}`）
+- 原生 setvar 可以正常处理不含 `|` 的参数
+
+### PostProcessor（优先级 1000）
+
+- 在宏求值后运行
+- 扫描所有输出文本
+- 将占位符还原为 `|`
+- 用户最终看到的是正确的 `|` 字符
 
 ### 优势
 
-- **源头修复**：在宏解析前处理，覆盖所有场景
-- **官方 API**：使用 MacroEngine 提供的标准 hook 机制
-- **零侵入**：不修改核心代码，不监听 DOM 事件
-- **高性能**：只在宏处理时运行，无额外开销
-- **可靠性高**：避免了事件监听的时序问题
+- **完全兼容**：不修改原生 setvar 行为，只是预处理输入
+- **零侵入**：使用官方 API，不修改核心代码
+- **高性能**：占位符检测使用 `String.includes()`，O(n) 复杂度
+- **无冲突**：使用 Unicode 私有区字符，不会与用户内容冲突
+- **可靠性高**：PreProcessor 和 PostProcessor 配对工作，确保数据完整性
 
 ## 文件结构
 
@@ -67,10 +81,12 @@ fix-setvar-macro/
 
 ## 技术细节
 
-- 使用 `MacroEngine.addPreProcessor()` 注册预处理器
-- 优先级设置为 0（最高优先级，在其他预处理器前运行）
-- 智能检测前置反斜杠，避免重复转义
-- 支持动态启用/禁用（通过 `removePreProcessor()` 注销）
+- 使用 `MacroEngine.addPreProcessor()` 和 `addPostProcessor()` 注册处理器
+- PreProcessor 优先级设置为 0（最高优先级，在其他预处理器前运行）
+- PostProcessor 优先级设置为 1000（较低优先级，让其他处理器先执行）
+- 占位符使用 Unicode 私有区字符 `\u{E000}PIPE\u{E001}`，避免与用户内容冲突
+- 智能检测前置反斜杠，正确处理已转义的 `\|`
+- 支持动态启用/禁用（通过 `removePreProcessor()` 和 `removePostProcessor()` 注销）
 - 设置会自动保存到 `context.extensionSettings`
 
 ## 调试
@@ -78,18 +94,18 @@ fix-setvar-macro/
 在设置面板中启用 **调试模式**，然后打开浏览器控制台，查看详细日志：
 
 ```
-✓ FSM:INFO Extension ready! Using MacroEngine PreProcessor hook.
-✓ FSM:INFO [PreProcessor] Registered with MacroEngine (priority=0)
+✓ FSM:INFO Extension ready! Using PreProcessor (setvar) + PostProcessor (getvar).
+✓ FSM:INFO [Processors] Registered PreProcessor and PostProcessor
 🔍 FSM:DEBUG [PreProcessor] Fixed setvar at position 123
 🔍 FSM:DEBUG   Original: {{setvar::name::value|with|pipes}}
-🔍 FSM:DEBUG   Fixed:    {{setvar::name::value\|with\|pipes}}
-🔍 FSM:DEBUG   Pipes escaped: 2
+🔍 FSM:DEBUG   Fixed:    {{setvar::name::value〈PIPE〉with〈PIPE〉pipes}}
 🔍 FSM:DEBUG [PreProcessor] Fixed 1 macro(s) in 0.15ms
+🔍 FSM:DEBUG [PostProcessor] Restored 2 pipe(s) in 0.05ms
 ```
 
 日志级别：
 
-- `✓ FSM:INFO` - 重要操作（扩展启用/禁用、预处理器注册）
+- `✓ FSM:INFO` - 重要操作（扩展启用/禁用、处理器注册）
 - `🔍 FSM:DEBUG` - 详细调试信息（仅在调试模式下显示）
 - `⚠ FSM:WARN` - 警告信息
 
