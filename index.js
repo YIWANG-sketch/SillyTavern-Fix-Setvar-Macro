@@ -135,6 +135,11 @@ function fixAllMessages(eventName = "UNKNOWN") {
   debugLog(`[Event: ${eventName}] ========== Starting message scan ==========`);
   const startTime = performance.now();
 
+  if (!SillyTavern || !SillyTavern.getContext) {
+    debugLog(`[Event: ${eventName}] SillyTavern context not ready yet`);
+    return;
+  }
+
   const { getContext } = SillyTavern.getContext();
   const context = getContext();
   if (!context || !context.chat) {
@@ -249,7 +254,8 @@ function onDebugChanged() {
 jQuery(async () => {
   infoLog("Extension loading...");
 
-  const { eventSource, event_types, renderExtensionTemplateAsync } = SillyTavern.getContext();
+  const { eventSource, event_types, renderExtensionTemplateAsync } =
+    SillyTavern.getContext();
 
   const settingsHtml = await renderExtensionTemplateAsync(
     "third-party/SillyTavern-Fix-Setvar-Macro",
@@ -284,15 +290,14 @@ jQuery(async () => {
     fixAllMessages("CHAT_CHANGED");
   });
 
-  debugLog("[Init] Running initial scan...");
-  fixAllMessages("INIT");
+  debugLog("[Init] Event listeners registered. Extension ready!");
 
   infoLog("Extension ready! Monitoring for setvar macros...");
 
   if (extensionSettings.debug) {
     console.log(`${DEBUG_PREFIX} ========================================`);
     console.log(`${DEBUG_PREFIX} Debug mode is active`);
-    console.log(`${DEBUG_PREFIX} Filter console with: "FSM:DEBUG"`);
+    console.log(`${DEBUG_PREFIX} Filter console with: \"FSM:DEBUG\"`);
     console.log(`${DEBUG_PREFIX} ========================================`);
   }
 });
