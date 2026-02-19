@@ -12,7 +12,7 @@
 {{setvar::name::|value|}}
 ```
 
-`|` 会被错误解析为管道符分隔符，而不是值的一部分。即使手动转义 `\|` 也无法解决问题。
+`|` 会被错误解析为管道符分隔符，而不是值的一部分。
 
 ### 解决方案
 
@@ -68,26 +68,6 @@
 - **高性能**：占位符检测使用 `String.includes()`，O(n) 复杂度
 - **无冲突**：使用 Unicode 私有区字符，不会与用户内容冲突
 - **可靠性高**：PreProcessor 和 PostProcessor 配对工作，确保数据完整性
-
-## 文件结构
-
-```
-fix-setvar-macro/
-├── index.js          # 主逻辑
-├── settings.html     # 设置界面
-├── manifest.json     # 扩展配置
-└── README.md         # 说明文档
-```
-
-## 技术细节
-
-- 使用 `MacroEngine.addPreProcessor()` 和 `addPostProcessor()` 注册处理器
-- PreProcessor 优先级设置为 0（最高优先级，在其他预处理器前运行）
-- PostProcessor 优先级设置为 1000（较低优先级，让其他处理器先执行）
-- 占位符使用 Unicode 私有区字符 `\u{E000}PIPE\u{E001}`，避免与用户内容冲突
-- 智能检测前置反斜杠，正确处理已转义的 `\|`
-- 支持动态启用/禁用（通过 `removePreProcessor()` 和 `removePostProcessor()` 注销）
-- 设置会自动保存到 `context.extensionSettings`
 
 ## 调试
 
