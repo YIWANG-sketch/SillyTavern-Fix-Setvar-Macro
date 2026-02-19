@@ -1,9 +1,9 @@
 import { saveSettingsDebounced } from '../../../../script.js';
-import { extension_settings } from '../../../extensions.js';
+import { extension_settings, getContext, renderExtensionTemplateAsync } from '../../../extensions.js';
 
-const { eventSource, event_types, getContext, renderExtensionTemplateAsync } = SillyTavern.getContext();
+const { eventSource, event_types } = SillyTavern.getContext();
 
-const MODULE_NAME = 'fix-setvar-macro';
+const MODULE_NAME = 'third-party/SillyTavern-Fix-Setvar-Macro';
 const MACROS_TO_FIX = ['setvar', 'setglobalvar', 'addvar', 'addglobalvar'];
 
 let extensionSettings = {
