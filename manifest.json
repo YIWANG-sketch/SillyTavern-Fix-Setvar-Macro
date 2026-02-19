@@ -1,0 +1,11 @@
+{
+  "display_name": "Fix Setvar Macro",
+  "loading_order": 1,
+  "requires": [],
+  "optional": [],
+  "js": "index.js",
+  "css": "style.css",
+  "author": "YIWANG-sketch",
+  "version": "1.0.0",
+  "homePage": "https://github.com/YIWANG-sketch/SillyTavern-Fix-Setvar-Macro"
+}
