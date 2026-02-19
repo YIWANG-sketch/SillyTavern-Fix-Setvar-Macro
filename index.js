@@ -1,6 +1,7 @@
-import { eventSource, event_types } from '../../../script.js';
-import { getContext, renderExtensionTemplateAsync } from '../../extensions.js';
-import { saveSettingsDebounced } from '../../../script.js';
+import { saveSettingsDebounced } from '../../../../script.js';
+import { extension_settings } from '../../../extensions.js';
+
+const { eventSource, event_types, getContext, renderExtensionTemplateAsync } = SillyTavern.getContext();
 
 const MODULE_NAME = 'fix-setvar-macro';
 const MACROS_TO_FIX = ['setvar', 'setglobalvar', 'addvar', 'addglobalvar'];
@@ -36,11 +37,36 @@ function escapePipesInMacro(text, macroName) {
 
   const result = text.replace(regex, (match, args, offset) => {
     matchCount++;
-    const unescapedPipes = (args.match(/(?<!\\)\|/g) || []).length;
+
+    // Count unescaped pipes by checking preceding backslashes
+    let unescapedPipes = 0;
+    let escapedArgs = args;
+    let i = 0;
+
+    while (i < args.length) {
+      if (args[i] === '|') {
+        // Count preceding backslashes
+        let backslashCount = 0;
+        let j = i - 1;
+        while (j >= 0 && args[j] === '\\') {
+          backslashCount++;
+          j--;
+        }
+
+        // If even number of backslashes (including 0), pipe is unescaped
+        if (backslashCount % 2 === 0) {
+          unescapedPipes++;
+          // Escape this pipe
+          escapedArgs =
+            escapedArgs.slice(0, i + (unescapedPipes - 1)) + '\\' + escapedArgs.slice(i + (unescapedPipes - 1));
+          i++; // Skip the backslash we just added
+        }
+      }
+      i++;
+    }
 
     if (unescapedPipes > 0) {
       fixCount++;
-      const escapedArgs = args.replace(/(?<!\\)\|/g, '\\|');
       const fixed = `{{${macroName}::${escapedArgs}}}`;
 
       debugLog(`[Macro Fix] ${macroName} at position ${offset}`);
@@ -106,9 +132,14 @@ function fixAllMessages(eventName = 'UNKNOWN') {
   const startTime = performance.now();
 
   const context = getContext();
+  if (!context || !context.chat) {
+    debugLog(`[Event: ${eventName}] No context or chat available`);
+    return;
+  }
+
   const chat = context.chat;
 
-  if (!chat || chat.length === 0) {
+  if (chat.length === 0) {
     debugLog(`[Event: ${eventName}] No chat messages found`);
     return;
   }
@@ -147,6 +178,7 @@ function fixAllMessages(eventName = 'UNKNOWN') {
         const fixed = fixMacrosInText(original);
         if (original !== fixed) {
           message.swipes[j] = fixed;
+          fixedCount++;
           debugLog(`[Message ${i}] ✓ Swipe ${j} fixed`);
         } else {
           debugLog(`[Message ${i}] Swipe ${j} no changes needed`);
@@ -171,9 +203,19 @@ function fixAllMessages(eventName = 'UNKNOWN') {
 
 function loadSettings() {
   const context = getContext();
-  if (context.extensionSettings && context.extensionSettings[MODULE_NAME]) {
+  if (!context) {
+    warnLog('[Settings] No context available');
+    return;
+  }
+
+  if (!context.extensionSettings) {
+    context.extensionSettings = {};
+  }
+
+  if (context.extensionSettings[MODULE_NAME]) {
     Object.assign(extensionSettings, context.extensionSettings[MODULE_NAME]);
   }
+
   $('#fix_setvar_enabled').prop('checked', extensionSettings.enabled);
   $('#fix_setvar_debug').prop('checked', extensionSettings.debug);
 
@@ -183,6 +225,15 @@ function loadSettings() {
 function onEnabledChanged() {
   extensionSettings.enabled = $('#fix_setvar_enabled').prop('checked');
   const context = getContext();
+  if (!context) {
+    warnLog('[Settings] No context available');
+    return;
+  }
+
+  if (!context.extensionSettings) {
+    context.extensionSettings = {};
+  }
+
   context.extensionSettings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
   infoLog(`Extension ${extensionSettings.enabled ? 'enabled' : 'disabled'}`);
@@ -191,6 +242,15 @@ function onEnabledChanged() {
 function onDebugChanged() {
   extensionSettings.debug = $('#fix_setvar_debug').prop('checked');
   const context = getContext();
+  if (!context) {
+    warnLog('[Settings] No context available');
+    return;
+  }
+
+  if (!context.extensionSettings) {
+    context.extensionSettings = {};
+  }
+
   context.extensionSettings[MODULE_NAME] = extensionSettings;
   saveSettingsDebounced();
   infoLog(`Debug mode ${extensionSettings.debug ? 'enabled' : 'disabled'}`);
